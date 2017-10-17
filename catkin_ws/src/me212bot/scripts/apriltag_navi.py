@@ -10,6 +10,7 @@ import threading
 import serial
 import tf.transformations as tfm
 
+from me212bot.msg import WheelCmdVel
 
 from apriltags_ros.msg import AprilTagDetectionArray
 from helper import transformPose, pubFrame, cross2d, lookupTransform, pose2poselist, invPoselist, diffrad
@@ -21,7 +22,8 @@ br = tf.TransformBroadcaster()
     
 def main():
     apriltag_sub = rospy.Subscriber("/tag_detections", AprilTagDetectionArray, apriltag_callback, queue_size = 1)
-    
+    velcmd_pub = rospy.Publisher('/cmdvel', WheelCmdVel, queue_size =1)
+
     rospy.sleep(1)
     
     constant_vel = True
@@ -39,6 +41,10 @@ def constant_vel_loop():
     rate = rospy.Rate(100) # 100hz
     
     while not rospy.is_shutdown() :
+        wcv = WheelCmdVel()
+        wcv.desiredWV_R = 0.1
+        wcv.desiredWV_L = 0.2 
+        velcmd_pub.publish(wcv) 
         ##wcv = WheelCmdVel()
         ##wcv.desiredWV_R = ???
         ##wcv.desiredWV_L = ???
@@ -51,14 +57,21 @@ def constant_vel_loop():
 def apriltag_callback(data):
     # use apriltag pose detection to find where is the robot
     if len(data.detections)!=0:  # check if apriltag is detected
-    	detection = data.detections[0]
-    	print detection.pose 
-    	if detection.id == 21:   # tag id is the correct one
-		# Use the functions in helper.py to do the following 
-		# step 1. convert the pose to poselist Hint: pose data => detection.pose.pose 
-		# step 2. do the matrix manipulation 
-		# step 3. publish the base frame w.r.t the map frame
-    		# note: tf listener and broadcaster are initalize in line 19~20
+        detection = data.detections[0]
+        print detection.pose 
+        if detection.id == 21:
+            print "detection"
+        # tag id is the correct one
+        # Use the functions in helper.py to do the following 
+        # step 1. convert the pose to poselist Hint: pose data => detection.pose.pose
+            #poselist = pose2poselist(detection.pose.pose)
+        # step 2. do the matrix manipulation 
+            #mm = transformPose(lr, poselist, 21, detection.id)
+        # step 3. publish the base frame w.r.t the map frame
+            #br.w = mm[6]
+            #br.r = mm[3:5]
+            #br.t = mm[0:2]
+        # note: tf listener and broadcaster are initalize in line 19~20
 
 ## navigation control loop (No need to modify)
 def navi_loop():
