@@ -61,6 +61,11 @@ def apriltag_callback(data):
         print detection.pose 
         if detection.id == 21:
             print "detection"
+            pose = pose2poselist(detection.pose.pose)
+            base_to_tag = transformPose(lr, pose, sourceFrame = '/camera', targetFrame = '/apriltag')
+            tag_to_base = invPoselist(base_to_tag)
+            map_to_base = transformPose(lr, tag_to_base, sourceFrame = '/map', targetFrame = '/base_link')
+
         # tag id is the correct one
         # Use the functions in helper.py to do the following 
         # step 1. convert the pose to poselist Hint: pose data => detection.pose.pose
@@ -68,9 +73,9 @@ def apriltag_callback(data):
         # step 2. do the matrix manipulation 
             #mm = transformPose(lr, poselist, 21, detection.id)
         # step 3. publish the base frame w.r.t the map frame
-            #br.w = mm[6]
-            #br.r = mm[3:5]
-            #br.t = mm[0:2]
+            br.w = map_to_base[6]
+            br.r = map_to_base[3:5]
+            br.t = map_to_base[0:2]
         # note: tf listener and broadcaster are initalize in line 19~20
 
 ## navigation control loop (No need to modify)
